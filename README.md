@@ -1,65 +1,350 @@
-<<<<<<< HEAD
-# Laravel-Tranning-Project
-=======
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Development
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Installation Steps
 
-## About Laravel
+### 1. Update System Packages
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```bash
+sudo apt update
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 2. Install Apache2 Web Server
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+sudo apt install apache2
+```
 
-## Learning Laravel
+### 3. Install PHP and Required Extensions
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Install PHP along with all necessary extensions for Laravel:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+sudo apt install php libapache2-mod-php php-cli php-mbstring php-xml php-bcmath php-json php-zip php-curl php-mysql php-xmlrpc php-gd
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 4. Install Composer (PHP Dependency Manager)
 
-## Laravel Sponsors
+Download and install Composer:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+sudo apt install curl unzip
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+```
 
-### Premium Partners
+### 5. Install Laravel Installer
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Navigate to the web directory and install Laravel globally:
 
-## Contributing
+```bash
+cd /var/www
+composer global require laravel/installer
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 6. Configure Environment Path
 
-## Code of Conduct
+Add Composer's global bin directory to your PATH:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+nano ~/.bashrc
+```
 
-## Security Vulnerabilities
+Add the following line at the end of the file:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+```
 
-## License
+Save and exit, then reload the configuration:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
->>>>>>> 7804387 (Initial commit)
+```bash
+source ~/.bashrc
+```
+
+### 7. Verify Installation
+
+Check if Composer and Laravel are properly installed:
+
+```bash
+composer --version
+laravel --version
+```
+
+## Creating a New Laravel Project
+
+### 1. Create Project
+
+```bash
+laravel new example-project
+```
+
+### 2. Navigate to Project Directory
+
+```bash
+cd example-project
+```
+
+### 3. Run Development Server
+
+For quick testing, use the built-in PHP server:
+
+```bash
+php artisan serve
+```
+
+## Apache Configuration
+
+### 1. Create Apache Virtual Host Configuration
+
+```bash
+sudo nano /etc/apache2/sites-available/example-project.conf
+```
+
+Add the following configuration:
+
+```apache
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/example-project/public
+    ServerName example-project.local
+
+    <Directory /var/www/example-project/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+
+### 2. Update Hosts File
+
+```bash
+sudo nano /etc/hosts
+```
+
+Add the following line:
+
+```
+127.0.0.1 example-project.local
+```
+
+Complete hosts file example:
+
+```
+127.0.0.1 localhost
+127.0.0.1 example-project.local
+127.0.1.1 ubuntu-H270M-D3H
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+```
+
+### 3. Enable Site and Rewrite Module
+
+```bash
+sudo a2ensite example-project.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+```
+
+### 4. Set Proper Permissions
+
+```bash
+sudo chown -R www-data:www-data /var/www/example-project
+sudo chmod -R 755 /var/www/example-project
+sudo chmod -R 775 /var/www/example-project/storage
+sudo chmod -R 775 /var/www/example-project/bootstrap/cache
+```
+
+## Moving Project to Custom Location
+
+If you need to move your Laravel project to a custom directory (e.g., external drive or different partition):
+
+### 1. Move the Project
+
+```bash
+sudo mv /var/www/example-project /media/ubuntu/_Projects/
+```
+
+### 2. Set Proper Ownership and Permissions
+
+Update ownership to Apache user:
+
+```bash
+sudo chown -R www-data:www-data /media/ubuntu/_Projects/example-project
+```
+
+Set permissions on the parent directory to allow Apache access:
+
+```bash
+sudo chmod -R 755 /media/ubuntu/_Projects
+```
+
+Set specific permissions for Laravel directories:
+
+```bash
+sudo chmod -R 755 /media/ubuntu/_Projects/example-project
+sudo chmod -R 775 /media/ubuntu/_Projects/example-project/storage
+sudo chmod -R 775 /media/ubuntu/_Projects/example-project/bootstrap/cache
+```
+
+### 3. Update Apache Virtual Host Configuration
+
+Edit the Apache configuration file:
+
+```bash
+sudo nano /etc/apache2/sites-available/example-project.conf
+```
+
+Update the configuration to point to the new location:
+
+```apache
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /media/ubuntu/_Projects/example-project/public
+    ServerName example-project.local
+
+    <Directory /media/ubuntu/_Projects/example-project/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+
+### 4. Restart Apache
+
+Apply the changes by restarting Apache:
+
+```bash
+sudo systemctl restart apache2
+```
+
+### 5. Verify Access
+
+Visit http://example-project.local in your browser to confirm the project is working.
+
+## Accessing Your Application
+
+-   **Development Server**: http://localhost:8000
+-   **Apache Virtual Host**: http://example-project.local
+
+## Troubleshooting
+
+### Common Issues
+
+#### 1. 403 Forbidden Error
+
+If you encounter a "Forbidden" error after moving the project:
+
+**Cause**: Insufficient permissions on the parent directory preventing Apache from accessing the project files.
+
+**Solution**:
+
+```bash
+sudo chmod -R 755 /media/ubuntu/_Projects
+sudo chmod -R 755 /media/ubuntu/_Projects/example-project
+```
+
+#### 2. Permission Denied Errors
+
+Ensure proper ownership for all project files:
+
+```bash
+sudo chown -R www-data:www-data /media/ubuntu/_Projects/example-project
+```
+
+#### 3. Apache Not Starting
+
+Check for port conflicts:
+
+```bash
+sudo netstat -tulpn | grep :80
+```
+
+#### 4. Composer Command Not Found
+
+Verify PATH configuration in ~/.bashrc and reload:
+
+```bash
+source ~/.bashrc
+```
+
+#### 5. Storage/Cache Write Errors
+
+Ensure Laravel's writable directories have correct permissions:
+
+```bash
+sudo chmod -R 775 /media/ubuntu/_Projects/example-project/storage
+sudo chmod -R 775 /media/ubuntu/_Projects/example-project/bootstrap/cache
+```
+
+### Useful Commands
+
+```bash
+# Check Apache status
+sudo systemctl status apache2
+
+# Restart Apache
+sudo systemctl restart apache2
+
+# View Apache error logs
+sudo tail -f /var/log/apache2/error.log
+
+# View Laravel logs
+tail -f /media/ubuntu/_Projects/example-project/storage/logs/laravel.log
+
+# Clear Laravel cache
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+
+# Check file permissions
+ls -la /media/ubuntu/_Projects/example-project
+
+# Test Apache configuration
+sudo apache2ctl configtest
+```
+
+## Permission Management Best Practices
+
+### Recommended Permission Structure
+
+```
+Project Root: 755 (rwxr-xr-x)
+├── storage/: 775 (rwxrwxr-x)
+│   ├── app/: 775
+│   ├── framework/: 775
+│   └── logs/: 775
+├── bootstrap/cache/: 775 (rwxrwxr-x)
+└── Other directories: 755 (rwxr-xr-x)
+```
+
+### Ownership
+
+-   **Owner**: www-data (Apache user)
+-   **Group**: www-data
+-   This ensures Apache can read all files and write to necessary directories
+
+## Next Steps
+
+1. Configure your `.env` file for database connections
+2. Run migrations: `php artisan migrate`
+3. Install additional packages as needed via Composer
+4. Start building your application!
+
+## Resources
+
+-   [Laravel Documentation](https://laravel.com/docs)
+-   [Composer Documentation](https://getcomposer.org/doc/)
+-   [Apache Documentation](https://httpd.apache.org/docs/)
+-   [Linux File Permissions Guide](https://www.linux.com/training-tutorials/understanding-linux-file-permissions/)
