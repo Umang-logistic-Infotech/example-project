@@ -78,6 +78,16 @@ laravel --version
 laravel new example-project
 ```
 
+### Project Setup
+
+This project was initialized with the following configuration:
+
+-   **Starter Kit**: None
+-   **Testing Framework**: Pest
+-   **Database**: MySQL
+-   **Default Database Migration**: Applied
+-   **npm Install**: Executed
+
 ### 2. Navigate to Project Directory
 
 ```bash
