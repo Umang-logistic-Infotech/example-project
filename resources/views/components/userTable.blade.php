@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="//cdn.datatables.net/2.3.4/css/dataTables.dataTables.min.css">
 
 <body text="gray">
-    <div class="container mx-auto" style="display:block; margin:auto">
+    <div class="container mx-auto" style="display:block; margin:auto;max-height:100px">
         <table id="userTable">
             <thead>
                 <th> Id </th>

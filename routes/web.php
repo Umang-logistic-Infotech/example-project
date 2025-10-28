@@ -13,7 +13,8 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Route::controller(UserController::class)->middleware(['auth', 'verified'])->group(function () {});
-Route::get('/users', [UserController::class, 'getUsers']);
+Route::get('/users', [UserController::class, 'getUsers'])->name('users');
+
 Route::get('/users1', [UserController::class, 'getUsers1'])->name('getUsers1');
 
 Route::middleware('auth')->group(function () {
