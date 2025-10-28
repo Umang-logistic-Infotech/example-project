@@ -130,3 +130,17 @@
 			php artisan db:seed --class=UserSeeder
 		run all seedners
 			php artisan db:seed
+
+	Use data tables in laravel
+		use cdn of datatable css :-<link rel="stylesheet" href="//cdn.datatables.net/2.3.4/css/dataTables.dataTables.min.css">
+		use cdn of jquery :-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+   
+		use cdn of datatable js :- <script src="//cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
+
+	set the userTable as datatable	
+	    <script>
+			$(document).ready(function() {
+				$('#userTable').DataTable();
+			});
+		</script>
