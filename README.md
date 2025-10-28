@@ -11,6 +11,7 @@
 7. [Database Migrations](#database-migrations)
 8. [Factories](#factories)
 9. [Seeders](#seeders)
+10. [ DataTables Server-Side Processing with AJAX](#DataTables-Server-Side-Processing-with-AJAX)
 
 ---
 
@@ -851,6 +852,240 @@ npm run dev
 php artisan serve
 ```
 
+# DataTables Server-Side Processing with AJAX
+
+A quick guide for implementing server-side processing with DataTables in Laravel.
+
+---
+
+## Installation
+
+Install the Yajra DataTables package:
+
+```bash
+composer require yajra/laravel-datatables-oracle
+```
+
+---
+
+## Implementation Steps
+
+### Step 1: Create Route
+
+Add the route in `routes/web.php`:
+
+```php
+use App\Http\Controllers\UserController;
+
+Route::get('/users1', [UserController::class, 'getUsers1'])->name('getUsers1');
+```
+
+---
+
+### Step 2: Create Controller Method
+
+Add the method in your `UserController.php`:
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
+
+class UserController extends Controller
+{
+    public function getUsers1(Request $request)
+    {
+        $users = User::all();
+        return DataTables::of($users)
+            ->addIndexColumn()
+            ->make(true);
+    }
+}
+```
+
+---
+
+### Step 3: Setup DataTable in Blade View
+
+Add the HTML table structure and JavaScript initialization:
+
+#### HTML Table
+
+```html
+<table id="userTable" class="display">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Date of Birth</th>
+            <th>Age</th>
+            <th>Percentage</th>
+            <th>Gender</th>
+            <th>User Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Data will be loaded via AJAX -->
+    </tbody>
+</table>
+```
+
+#### JavaScript Initialization
+
+```javascript
+$(document).ready(function () {
+    $("#userTable").DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('getUsers1') }}",
+        columns: [
+            { data: "id" },
+            { data: "name" },
+            { data: "email" },
+            { data: "date_of_birth" },
+            { data: "age" },
+            { data: "percentage" },
+            { data: "gender" },
+            { data: "userType" },
+        ],
+    });
+});
+```
+
+---
+
+## Required Assets
+
+Include these in your Blade template:
+
+### CSS
+
+```html
+<link
+    rel="stylesheet"
+    href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
+/>
+```
+
+### JavaScript
+
+```html
+<!-- jQuery (required) -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+```
+
+---
+
+## Complete Example
+
+Here's a complete working example:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Users DataTable</title>
+
+        <!-- DataTables CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
+        />
+    </head>
+    <body>
+        <h1>Users List</h1>
+
+        <table id="userTable" class="display">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Date of Birth</th>
+                    <th>Age</th>
+                    <th>Percentage</th>
+                    <th>Gender</th>
+                    <th>User Type</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+        <!-- DataTables JS -->
+        <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $("#userTable").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: "{{ route('getUsers1') }}",
+                    columns: [
+                        { data: "id" },
+                        { data: "name" },
+                        { data: "email" },
+                        { data: "date_of_birth" },
+                        { data: "age" },
+                        { data: "percentage" },
+                        { data: "gender" },
+                        { data: "userType" },
+                    ],
+                });
+            });
+        </script>
+    </body>
+</html>
+```
+
+---
+
+## Key Points
+
+-   **processing**: Shows a "Processing..." indicator while loading data
+-   **serverSide**: Enables server-side processing for better performance with large datasets
+-   **ajax**: The route that returns JSON data for the table
+-   **columns**: Maps table columns to data properties from the server response
+-   **addIndexColumn()**: Adds a DT_RowIndex column for row numbering
+
+---
+
+## Troubleshooting
+
+### Issue: Table not loading data
+
+**Check:**
+
+1. Route is correctly defined and accessible
+2. Controller method returns data in the correct format
+3. Column names in JavaScript match database column names
+4. Browser console for any JavaScript errors
+
+### Issue: Column data not showing
+
+**Solution:** Ensure the `data` property in columns matches the exact column name from your database/model:
+
+```javascript
+columns: [
+    { data: "id" }, // Must match database column name
+    { data: "name" }, // Case-sensitive
+];
+```
+
+---
+
 ## Resources
 
 ---
@@ -865,5 +1100,7 @@ php artisan serve
 -   [Laravel Factories Documentation](https://laravel.com/docs/eloquent-factories)
 -   [Laravel Seeders Documentation](https://laravel.com/docs/seeding)
 -   [Faker Documentation](https://fakerphp.github.io/)
+-   [Yajra DataTables Documentation](https://yajrabox.com/docs/laravel-datatables)
+-   [DataTables Official Documentation](https://datatables.net/)
 
 ---

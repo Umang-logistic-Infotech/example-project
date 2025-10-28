@@ -144,3 +144,50 @@
 				$('#userTable').DataTable();
 			});
 		</script>
+
+	server side processing in datatable  with ajax
+		create route
+			Route::get('/users1', [UserController::class, 'getUsers1'])->name('getUsers1');
+		
+		make function
+			public function getUsers1(Request $request)
+			{
+				$users = User::all();
+				return DataTables::of($users)
+					->addIndexColumn()
+					->make(true);
+			}
+		
+		use in datatable
+			$(document).ready(function() {
+            $('#userTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('getUsers1') }}",
+                columns: [{
+                        data: 'id'
+                    },
+                    {
+                        data: 'name'
+                    },
+                    {
+                        data: 'email'
+                    },
+                    {
+                        data: 'date_of_birth'
+                    },
+                    {
+                        data: 'age'
+                    },
+                    {
+                        data: 'percentage'
+                    },
+                    {
+                        data: 'gender'
+                    },
+                    {
+                        data: 'userType'
+                    },
+                ]
+            });
+        });

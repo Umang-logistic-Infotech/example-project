@@ -13,20 +13,6 @@
                 <th> Gender </th>
                 <th> User Type </th>
             </thead>
-            <tbody>
-                @foreach ($users as $user)
-                    <tr>
-                        <td> {{ $user->id }}</td>
-                        <td> {{ $user->name }}</td>
-                        <td> {{ $user->email }}</td>
-                        <td> {{ $user->date_of_birth }}</td>
-                        <td> {{ $user->age }}</td>
-                        <td> {{ $user->percentage }}</td>
-                        <td> {{ $user->gender }}</td>
-                        <td> {{ $user->userType }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
         </table>
     </div>
 
@@ -36,7 +22,36 @@
 
     <script>
         $(document).ready(function() {
-            $('#userTable').DataTable();
+            $('#userTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('getUsers1') }}",
+                columns: [{
+                        data: 'id'
+                    },
+                    {
+                        data: 'name'
+                    },
+                    {
+                        data: 'email'
+                    },
+                    {
+                        data: 'date_of_birth'
+                    },
+                    {
+                        data: 'age'
+                    },
+                    {
+                        data: 'percentage'
+                    },
+                    {
+                        data: 'gender'
+                    },
+                    {
+                        data: 'userType'
+                    },
+                ]
+            });
         });
     </script>
 </body>

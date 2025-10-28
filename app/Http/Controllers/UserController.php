@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
@@ -17,5 +18,13 @@ class UserController extends Controller
     {
         $users = User::all();
         return view('users', compact('users'));
+    }
+    public function getUsers1(Request $request)
+    {
+        $users = User::all();
+        return DataTables::of($users)
+            // ->addIndexColumn()
+            ->make(true);
+        // return $users;
     }
 }
