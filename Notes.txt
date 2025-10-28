@@ -1,0 +1,132 @@
+	sudo apt update - 
+	sudo apt install apache2 - install apache2
+	
+	install required libraries
+		sudo apt install php libapache2-mod-php php-cli php-mbstring php-xml php-bcmath php-json php-zip php-curl php-mysql php-xmlrpc php-gd
+	
+
+	install php dependancy manager (composer)
+		sudo apt install curl unzip
+		curl -sS https://getcomposer.org/installer | php
+		sudo mv composer.phar /usr/local/bin/composer			// move to bin/composer folder
+	
+	nevigate to /var/www folder - cd /var/www
+	
+	Install laravel -
+		composer globarequire laravel/installerte
+		
+	Open nano ~/.bashrc and paste following line at the end of the file
+		export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+	
+	save and exit
+	
+	then run source ~/.bashrc
+	
+	verify composer version - composer --version
+	verify laravel version - laravel --version
+	
+	Create new laravel project - laravel new example-project
+	
+	select appropriate options
+		- Which starter kit would you like to install? -> none
+		- Which testing framework do you prefer? -> Pest
+		- Which database will your application use? -> MySQL
+		- Default database updated. Would you like to run the default database migrte -> yes
+		- Would you like to run npm install and npm - yes
+		
+	nevigate to that project - cd example-project
+
+	run the project - php artisan serve
+
+	modify url paste following code inside it
+		 sudo nano /etc/apache2/sites-available/example-project.conf
+	
+		<VirtualHost *:80>
+		    ServerAdmin webmaster@localhost
+		    DocumentRoot /var/www/example-project/public
+		    ServerName example-project.local
+
+		    <Directory /var/www/example-project/public>
+			AllowOverride All
+			Require all granted
+		    </Directory>
+
+		    ErrorLog ${APACHE_LOG_DIR}/error.log
+		    CustomLog ${APACHE_LOG_DIR}/access.log combined
+		</VirtualHost>
+
+	update etc/host file
+		sudo nano /etc/hosts
+
+		127.0.0.1 example-project.local		// url
+		127.0.1.1 ubnutu-H270M-D3H
+
+		# The following lines are desirable for IPv6 capable hosts
+		::1     ip6-localhost ip6-loopback
+		fe00::0 ip6-localnet
+		ff00::0 ip6-mcastprefix
+		ff02::1 ip6-allnodes
+		ff02::2 ip6-allrouters
+
+
+	Default AUTH via artisan make:auth
+		it is depricated and can be used with laravel version 5.6 or before
+		
+		use laravel ui(bootstrap ui authentication) :- composer require laravel/ui
+		and run project with laravel ui : composer run dev
+		
+		laravel Breeze authentication :-
+			composer require laravel/breeze --dev
+			php artisan breeze:install
+			
+		Then select Blade, then Yes, then Pest.
+		Migrate:
+			php artisan migrate
+		Install remaining packages:
+			npm install
+		and run project with Breeze :-
+			composer run dev
+
+	Update the user table schema using migration
+		create migration :-php artisan make:migration UpdateUserTableMigration
+		
+		add new schema
+			Schema::table('users', function (Blueprint $table) {
+			    //
+			    $table->integer('age');
+			    $table->float('percentage');
+			    $table->string('profileImage')->nullable(true);
+			    $table->date('date_of_birth')->nullable();
+			    $table->enum('gender', ['male', 'female'])->default('male');
+			    $table->enum('userType', ['student', 'teacher'])->default('student');
+			});
+			
+		run php artisan migrate to run the migration
+	
+	Create user factory for generaating testing user data
+		php artisan make:factory userFactory --model=User
+		
+        Edit the factory defination
+            public function definition(): array
+            {
+                return [
+                    'name' => fake()->name(),
+                    'email' => fake()->unique()->safeEmail(),
+                    'age' => $this->faker->numberBetween(18, 65),
+                    'percentage' => $this->faker->randomFloat(2, 0, 100),
+                    'date_of_birth' => $this->faker->date(),
+                    'gender' => $this->faker->randomElement(['male', 'female']),
+                    'userType' => $this->faker->randomElement(['student', 'teacher']),
+                    'email_verified_at' => now(),
+                    'password' => static::$password ??= Hash::make('password'),
+                    'remember_token' => Str::random(10),
+                ];
+            }  
+
+	Create seeder for filling the testing data
+		php artisan make:seeder UserSeeder
+		
+		run current seeder
+			php artisan db:seed --class=UserSeeder
+		run all seedners
+			php artisan db:seed

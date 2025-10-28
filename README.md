@@ -1,5 +1,19 @@
 # Laravel Development
 
+## Table of Contents
+
+1. [Installation Steps](#seedersInstallation-Steps)
+2. [Creating a New Laravel Project](#Creating-a-New-Laravel-Project)
+3. [Apache Configuration](#Apache-Configuration)
+4. [Moving Project to Custom Location](#Moving-Project-to-Custom-Location)
+5. [Permission Management](#Permission-Management-Best-Practices)
+6. [Authentication Setup](#authentication-setup)
+7. [Database Migrations](#database-migrations)
+8. [Factories](#factories)
+9. [Seeders](#seeders)
+
+---
+
 ## Installation Steps
 
 ### 1. Update System Packages
@@ -352,9 +366,504 @@ Project Root: 755 (rwxr-xr-x)
 3. Install additional packages as needed via Composer
 4. Start building your application!
 
+# Laravel Authentication & Database Management
+
+## Authentication Setup
+
+### Default Laravel Authentication (Deprecated)
+
+**Note**: `php artisan make:auth` is deprecated and only works with Laravel 5.6 or earlier versions.
+
+### Option 1: Laravel UI (Bootstrap Authentication)
+
+Laravel UI provides Bootstrap-based authentication scaffolding.
+
+#### Installation
+
+```bash
+composer require laravel/ui
+```
+
+#### Run Development Server
+
+```bash
+npm run dev
+```
+
+### Option 2: Laravel Breeze (Recommended)
+
+Laravel Breeze provides a minimal and simple authentication scaffolding with Blade templates.
+
+#### Installation
+
+```bash
+composer require laravel/breeze --dev
+```
+
+#### Install Breeze
+
+```bash
+php artisan breeze:install
+```
+
+**Interactive Prompts:**
+
+1. Select: **Blade**
+2. Dark mode support: **Yes**
+3. Testing framework: **Pest**
+
+#### Run Migrations
+
+```bash
+php artisan migrate
+```
+
+#### Install NPM Dependencies
+
+```bash
+npm install
+```
+
+#### Run Development Server
+
+```bash
+npm run dev
+```
+
+---
+
+## Database Migrations
+
+### Creating a Migration
+
+To modify an existing table (e.g., adding columns to the users table):
+
+```bash
+php artisan make:migration UpdateUserTableMigration
+```
+
+### Example: Updating User Table Schema
+
+Edit the generated migration file in `database/migrations/`:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->integer('age');
+            $table->float('percentage');
+            $table->string('profileImage')->nullable(true);
+            $table->date('date_of_birth')->nullable();
+            $table->enum('gender', ['male', 'female'])->default('male');
+            $table->enum('userType', ['student', 'teacher'])->default('student');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn([
+                'age',
+                'percentage',
+                'profileImage',
+                'date_of_birth',
+                'gender',
+                'userType'
+            ]);
+        });
+    }
+};
+```
+
+### Run the Migration
+
+```bash
+php artisan migrate
+```
+
+### Common Migration Commands
+
+```bash
+# Run all pending migrations
+php artisan migrate
+
+# Rollback the last migration batch
+php artisan migrate:rollback
+
+# Rollback all migrations
+php artisan migrate:reset
+
+# Rollback and re-run all migrations
+php artisan migrate:refresh
+
+# Drop all tables and re-run migrations
+php artisan migrate:fresh
+
+# Check migration status
+php artisan migrate:status
+```
+
+---
+
+## Factories
+
+Factories are used to generate fake data for testing purposes.
+
+### Creating a Factory
+
+```bash
+php artisan make:factory UserFactory --model=User
+```
+
+### Example: User Factory Definition
+
+Edit the factory file in `database/factories/UserFactory.php`:
+
+```php
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ */
+class UserFactory extends Factory
+{
+    /**
+     * The current password being used by the factory.
+     */
+    protected static ?string $password;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'age' => $this->faker->numberBetween(18, 65),
+            'percentage' => $this->faker->randomFloat(2, 0, 100),
+            'date_of_birth' => $this->faker->date(),
+            'gender' => $this->faker->randomElement(['male', 'female']),
+            'userType' => $this->faker->randomElement(['student', 'teacher']),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
+        ];
+    }
+
+    /**
+     * Indicate that the model's email address should be unverified.
+     */
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+        ]);
+    }
+}
+```
+
+### Using Factories in Tinker
+
+```bash
+php artisan tinker
+
+# Create a single user
+User::factory()->create();
+
+# Create multiple users
+User::factory()->count(10)->create();
+```
+
+---
+
+## Seeders
+
+Seeders allow you to populate your database with test data.
+
+### Creating a Seeder
+
+```bash
+php artisan make:seeder UserSeeder
+```
+
+### Example: User Seeder Definition
+
+Edit the seeder file in `database/seeders/UserSeeder.php`:
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use App\Models\User;
+
+class UserSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // Create 50 users using the factory
+        User::factory()->count(50)->create();
+
+        // Or create a specific user
+        User::factory()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'userType' => 'teacher',
+        ]);
+    }
+}
+```
+
+### Registering Seeder in DatabaseSeeder
+
+Edit `database/seeders/DatabaseSeeder.php`:
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        $this->call([
+            UserSeeder::class,
+            // Add other seeders here
+        ]);
+    }
+}
+```
+
+### Running Seeders
+
+```bash
+# Run a specific seeder
+php artisan db:seed --class=UserSeeder
+
+# Run all seeders (defined in DatabaseSeeder)
+php artisan db:seed
+
+# Refresh database and run all seeders
+php artisan migrate:fresh --seed
+```
+
+---
+
+## Complete Workflow Example
+
+Here's a complete workflow for setting up authentication with custom user fields:
+
+```bash
+# 1. Create Laravel project
+laravel new example-project
+cd example-project
+
+# 2. Install Breeze
+composer require laravel/breeze --dev
+php artisan breeze:install
+# Select: Blade, Yes, Pest
+
+# 3. Create migration for user table updates
+php artisan make:migration UpdateUserTableMigration
+
+# 4. Edit migration file (add custom columns)
+# database/migrations/YYYY_MM_DD_HHMMSS_update_user_table_migration.php
+
+# 5. Run migrations
+php artisan migrate
+
+# 6. Create/Update User Factory
+php artisan make:factory UserFactory --model=User
+# Edit database/factories/UserFactory.php
+
+# 7. Create User Seeder
+php artisan make:seeder UserSeeder
+# Edit database/seeders/UserSeeder.php
+
+# 8. Run seeder
+php artisan db:seed --class=UserSeeder
+
+# 9. Install and run frontend assets
+npm install
+npm run dev
+
+# 10. Start development server
+php artisan serve
+```
+
+---
+
+## Faker Methods Reference
+
+Common Faker methods used in factories:
+
+```php
+// Text
+fake()->name()                          // Full name
+fake()->firstName()                     // First name
+fake()->lastName()                      // Last name
+fake()->email()                         // Email address
+fake()->safeEmail()                     // Safe email (example.com domain)
+
+// Numbers
+fake()->numberBetween(1, 100)          // Random integer
+fake()->randomFloat(2, 0, 100)         // Random float with 2 decimals
+
+// Dates
+fake()->date()                          // Random date (Y-m-d)
+fake()->dateTime()                      // Random datetime
+fake()->dateTimeBetween('-30 years', 'now')  // Date in range
+
+// Random Selection
+fake()->randomElement(['option1', 'option2'])  // Random from array
+fake()->boolean()                       // Random true/false
+
+// Lorem Ipsum
+fake()->sentence()                      // Random sentence
+fake()->paragraph()                     // Random paragraph
+fake()->text(200)                       // Random text (200 chars)
+```
+
+---
+
+## Best Practices
+
+### Migrations
+
+1. **Always include `down()` method** - Allows rollback of migrations
+2. **Use descriptive migration names** - e.g., `AddStatusToUsersTable`
+3. **One change per migration** - Easier to manage and rollback
+4. **Use nullable() for optional fields** - Prevents database errors
+
+### Factories
+
+1. **Use realistic data** - Makes testing more reliable
+2. **Set default password** - Use `Hash::make('password')` for consistency
+3. **Create factory states** - For different user types or statuses
+4. **Use unique() for unique fields** - Prevents database constraint errors
+
+### Seeders
+
+1. **Order matters** - Seed tables with foreign keys last
+2. **Use factories in seeders** - Don't duplicate fake data logic
+3. **Create admin users separately** - With known credentials
+4. **Use transactions** - For better performance with large datasets
+
+---
+
+## Common Issues & Solutions
+
+### Issue: Migration fails with "Column already exists"
+
+**Solution**: Check if the column was added in a previous migration or rollback first:
+
+```bash
+php artisan migrate:rollback
+php artisan migrate
+```
+
+### Issue: Seeder fails with "Class not found"
+
+**Solution**: Run composer autoload:
+
+```bash
+composer dump-autoload
+```
+
+### Issue: Factory produces duplicate emails
+
+**Solution**: Use `unique()` in factory:
+
+```php
+'email' => fake()->unique()->safeEmail()
+```
+
+### Issue: NPM run dev fails after Breeze installation
+
+**Solution**: Clear cache and reinstall:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+npm run dev
+```
+
+---
+
+## Useful Commands Summary
+
+```bash
+# Authentication
+composer require laravel/breeze --dev
+php artisan breeze:install
+
+# Migrations
+php artisan make:migration MigrationName
+php artisan migrate
+php artisan migrate:rollback
+php artisan migrate:fresh --seed
+
+# Factories
+php artisan make:factory ModelFactory --model=Model
+
+# Seeders
+php artisan make:seeder SeederName
+php artisan db:seed --class=SeederName
+php artisan db:seed
+
+# Development
+npm install
+npm run dev
+php artisan serve
+```
+
 ## Resources
+
+---
 
 -   [Laravel Documentation](https://laravel.com/docs)
 -   [Composer Documentation](https://getcomposer.org/doc/)
 -   [Apache Documentation](https://httpd.apache.org/docs/)
 -   [Linux File Permissions Guide](https://www.linux.com/training-tutorials/understanding-linux-file-permissions/)
+-   [Laravel Authentication Documentation](https://laravel.com/docs/authentication)
+-   [Laravel Breeze Documentation](https://laravel.com/docs/starter-kits#laravel-breeze)
+-   [Laravel Migrations Documentation](https://laravel.com/docs/migrations)
+-   [Laravel Factories Documentation](https://laravel.com/docs/eloquent-factories)
+-   [Laravel Seeders Documentation](https://laravel.com/docs/seeding)
+-   [Faker Documentation](https://fakerphp.github.io/)
+
+---
