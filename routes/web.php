@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MailController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,6 +17,7 @@ Route::get('/dashboard', function () {
 Route::get('/users', [UserController::class, 'getUsers'])->name('users');
 
 Route::get('/users1', [UserController::class, 'getUsers1'])->name('getUsers1');
+Route::get('/deleteUserMail', [MailController::class, 'deletedUserMail'])->name('deleteUserMail');
 
 // Route::post('/edit/{id}', [UserController::class, 'edit'])->name('edit.row');
 Route::delete('/delete/{id}', [UserController::class, 'delete'])->name('delete.row');
