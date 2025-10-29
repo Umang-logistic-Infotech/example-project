@@ -9,9 +9,12 @@
                 <th> Email </th>
                 <th> Date Of Birth </th>
                 <th> Age </th>
+                <th> C.Age </th>
                 <th> Percentage </th>
+                <th> Result </th>
                 <th> Gender </th>
                 <th> User Type </th>
+                <th> Actions </th>
             </thead>
         </table>
     </div>
@@ -42,7 +45,24 @@
                         data: 'age'
                     },
                     {
+                        data: 'calculatedAge',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
                         data: 'percentage'
+                    },
+                    {
+                        data: 'percentage',
+                        render: function(data) {
+                            if (data <= 35) {
+                                return '<div class="text-danger">Fail</div>';
+                            } else {
+                                return '<div class="text-success">Pass</div>';
+                            }
+                        },
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'gender'
@@ -50,7 +70,41 @@
                     {
                         data: 'userType'
                     },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            return '<button class="btn btn-primary btn-sm edit" data-id="' + row
+                                .id + '">Edit</button>' +
+                                '<button class="btn btn-danger btn-sm delete" data-id="' + row.id +
+                                '">Delete</button>';
+                        },
+                        orderable: false,
+                        searchable: false
+                    }
+
                 ]
+            });
+
+            $(document).on('click', '.delete', function() {
+                var id = $(this).data('id');
+                if (confirm('Are you sure you want to delete this item?')) {
+                    console.log('Deleted id : ', id);
+
+                    $.ajax({
+                        url: 'delete/' + id,
+                        method: 'DELETE',
+                        data: {
+                            _token: $('meta[name="csrf-token"]').attr('content'),
+                        },
+                        success: function(response) {
+                            alert(response.message);
+                            $('#datatable').DataTable().ajax.reload();
+                        },
+                        error: function() {
+                            alert('Error deleting the row!');
+                        }
+                    });
+                }
             });
         });
     </script>
