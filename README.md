@@ -12,6 +12,7 @@
 8. [Factories](#factories)
 9. [Seeders](#seeders)
 10. [ DataTables Server-Side Processing with AJAX](#DataTables-Server-Side-Processing-with-AJAX)
+11. [ Laravel Observers](#Laravel-Observers)
 
 ---
 
@@ -1084,6 +1085,348 @@ columns: [
 ];
 ```
 
+# Laravel Observers
+
+## What are Observers in Laravel?
+
+An Observer in Laravel is a way to listen for various events that occur on Eloquent models. It helps you run custom actions when certain events happen (e.g., saving a model, updating a model, deleting a model, etc.).
+
+In simple terms, Observers help separate the logic of what happens when a model changes (like creating or updating data) from the model itself.
+
+## Advantages of Observers
+
+-   **Clean Code**: Keeps your controllers and models clean by moving event handling to a dedicated observer class.
+-   **Reusability**: Allows you to apply the same logic across different models in a consistent way.
+-   **Separation of Concerns**: Keeps the model logic focused on data and business rules, while the observer handles actions like logging, sending notifications, etc.
+-   **Centralized Logic**: All model event logic is in one place, making it easier to maintain and debug.
+-   **Testability**: Observers can be easily tested in isolation from controllers and models.
+
+## Steps to Create an Observer in Laravel
+
+### 1. Create the Observer Class
+
+```bash
+php artisan make:observer UserObserver --model=User
+```
+
+This command creates a new observer file at `app/Observers/UserObserver.php`.
+
+### 2. Define Event Methods
+
+In the `UserObserver` class, you define methods that correspond to the events you want to listen to:
+
+```php
+<?php
+
+namespace App\Observers;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
+
+class UserObserver
+{
+    /**
+     * Handle the User "creating" event.
+     */
+    public function creating(User $user): void
+    {
+        // Set default values before saving
+        $user->status = $user->status ?? 'active';
+    }
+
+    /**
+     * Handle the User "created" event.
+     */
+    public function created(User $user): void
+    {
+        // Send welcome email
+        // Mail::to($user->email)->send(new WelcomeEmail($user));
+
+        // Log user creation
+        Log::info('New user created: ' . $user->email);
+    }
+
+    /**
+     * Handle the User "updating" event.
+     */
+    public function updating(User $user): void
+    {
+        // Check if email is being changed
+        if ($user->isDirty('email')) {
+            // Send verification email
+            Log::info('User email is being changed from ' . $user->getOriginal('email') . ' to ' . $user->email);
+        }
+    }
+
+    /**
+     * Handle the User "updated" event.
+     */
+    public function updated(User $user): void
+    {
+        // Clear cache after user update
+        // Cache::forget('user_' . $user->id);
+
+        Log::info('User updated: ' . $user->id);
+    }
+
+    /**
+     * Handle the User "deleting" event.
+     */
+    public function deleting(User $user): void
+    {
+        // Prevent deletion if user has active orders
+        // if ($user->orders()->where('status', 'active')->exists()) {
+        //     throw new \Exception('Cannot delete user with active orders');
+        // }
+
+        Log::warning('User is being deleted: ' . $user->email);
+    }
+
+    /**
+     * Handle the User "deleted" event.
+     */
+    public function deleted(User $user): void
+    {
+        // Delete related records
+        // $user->posts()->delete();
+        // $user->comments()->delete();
+
+        Log::info('User deleted: ' . $user->id);
+    }
+
+    /**
+     * Handle the User "restored" event.
+     */
+    public function restored(User $user): void
+    {
+        // Handle soft delete restoration
+        Log::info('User restored: ' . $user->id);
+    }
+
+    /**
+     * Handle the User "force deleted" event.
+     */
+    public function forceDeleted(User $user): void
+    {
+        // Handle permanent deletion
+        Log::warning('User permanently deleted: ' . $user->id);
+    }
+}
+```
+
+### 3. Register the Observer
+
+We need to register the observer to make Laravel aware of it. This is done in the `boot()` method of `App\Providers\AppServiceProvider` or `App\Providers\EventServiceProvider`.
+
+**Option 1: AppServiceProvider**
+
+```php
+<?php
+
+namespace App\Providers;
+
+use App\Models\User;
+use App\Observers\UserObserver;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        User::observe(UserObserver::class);
+    }
+}
+```
+
+**Option 2: EventServiceProvider (Laravel 11+)**
+
+```php
+<?php
+
+namespace App\Providers;
+
+use App\Models\User;
+use App\Observers\UserObserver;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+
+class EventServiceProvider extends ServiceProvider
+{
+    /**
+     * The model observers for your application.
+     *
+     * @var array
+     */
+    protected $observers = [
+        User::class => [UserObserver::class],
+    ];
+}
+```
+
+### 4. Done
+
+Your observer is now set up and will automatically listen to the specified model events.
+
+## Common Eloquent Events
+
+| Event             | Description                                  | When It Fires               |
+| ----------------- | -------------------------------------------- | --------------------------- |
+| **creating**      | Before a new model is saved to the database  | Before `INSERT` query       |
+| **created**       | After a model is saved to the database       | After `INSERT` query        |
+| **updating**      | Before an existing model is updated          | Before `UPDATE` query       |
+| **updated**       | After a model is updated                     | After `UPDATE` query        |
+| **saving**        | Before a model is saved (create or update)   | Before `INSERT` or `UPDATE` |
+| **saved**         | After a model is saved (create or update)    | After `INSERT` or `UPDATE`  |
+| **deleting**      | Before a model is deleted                    | Before `DELETE` query       |
+| **deleted**       | After a model is deleted                     | After `DELETE` query        |
+| **restoring**     | Before a soft-deleted model is restored      | Before restoration          |
+| **restored**      | After a soft-deleted model is restored       | After restoration           |
+| **forceDeleting** | Before a model is force deleted              | Before permanent deletion   |
+| **forceDeleted**  | After a model is force deleted               | After permanent deletion    |
+| **retrieved**     | After a model is retrieved from the database | After `SELECT` query        |
+| **replicating**   | Before a model is replicated                 | Before `replicate()` method |
+
+## Practical Examples
+
+### Example 1: Auto-generate Slug
+
+```php
+public function creating(Post $post): void
+{
+    if (empty($post->slug)) {
+        $post->slug = Str::slug($post->title);
+    }
+}
+```
+
+### Example 2: Track User Activity
+
+```php
+public function updated(User $user): void
+{
+    Activity::create([
+        'user_id' => $user->id,
+        'action' => 'updated',
+        'description' => 'User profile updated',
+        'changes' => $user->getChanges(),
+    ]);
+}
+```
+
+### Example 3: Cascade Delete Related Records
+
+```php
+public function deleting(Post $post): void
+{
+    // Delete all comments related to this post
+    $post->comments()->delete();
+
+    // Delete all media files
+    $post->media()->delete();
+}
+```
+
+### Example 4: Send Notifications
+
+```php
+public function created(Order $order): void
+{
+    // Notify admin
+    Notification::send(
+        User::where('role', 'admin')->get(),
+        new NewOrderNotification($order)
+    );
+
+    // Notify customer
+    $order->user->notify(new OrderConfirmationNotification($order));
+}
+```
+
+### Example 5: Prevent Deletion Based on Conditions
+
+```php
+public function deleting(User $user): void
+{
+    if ($user->orders()->where('status', 'pending')->exists()) {
+        throw new \Exception('Cannot delete user with pending orders');
+    }
+}
+```
+
+## Useful Methods in Observers
+
+### Check if Attribute Changed
+
+```php
+// Check if specific attribute is dirty (changed)
+if ($user->isDirty('email')) {
+    // Email has changed
+}
+
+// Get original value before change
+$oldEmail = $user->getOriginal('email');
+
+// Get all changed attributes
+$changes = $user->getChanges();
+
+// Check if any attributes changed
+if ($user->wasChanged()) {
+    // Model was changed
+}
+```
+
+### Prevent Events from Firing
+
+```php
+// Temporarily disable observers
+User::withoutEvents(function () {
+    User::find(1)->update(['name' => 'John']);
+});
+
+// Or for specific model instance
+$user->saveQuietly(); // Won't trigger observers
+```
+
+## Best Practices
+
+1. **Keep Observers Focused**: Each observer should handle a single model's events.
+2. **Avoid Heavy Operations**: Don't perform time-consuming tasks directly in observers. Use queued jobs instead.
+3. **Be Careful with Recursion**: Avoid triggering the same event within an observer (e.g., updating a model inside an `updated` event).
+4. **Use Transactions**: Wrap critical operations in database transactions to ensure data integrity.
+5. **Log Important Actions**: Always log critical events for debugging and auditing purposes.
+
+## Common Pitfalls
+
+-   **Infinite Loops**: Be careful not to update the same model inside an `updated` observer, as this will trigger the event again.
+-   **Performance Issues**: Observers run synchronously. Heavy operations should be queued.
+-   **Testing Challenges**: Remember to include observers in your tests or disable them when not needed.
+
+## Testing Observers
+
+```php
+use Tests\TestCase;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
+
+class UserObserverTest extends TestCase
+{
+    public function test_user_creation_logs_event()
+    {
+        Log::shouldReceive('info')
+            ->once()
+            ->with('New user created: test@example.com');
+
+        User::create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => bcrypt('password'),
+        ]);
+    }
+}
+```
+
 ---
 
 ## Resources
@@ -1102,5 +1445,6 @@ columns: [
 -   [Faker Documentation](https://fakerphp.github.io/)
 -   [Yajra DataTables Documentation](https://yajrabox.com/docs/laravel-datatables)
 -   [DataTables Official Documentation](https://datatables.net/)
+-   [Laravel Observers](https://laravel.com/docs/12.x/eloquent#observers)
 
 ---

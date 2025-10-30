@@ -191,3 +191,37 @@
                 ]
             });
         });
+
+
+	Observers in laravel:-
+		An Observer in Laravel is a way to listen for various events that occur on Eloquent models. It helps you run custom actions when certain events happen (e.g., saving a model, updating a model, deleting a model, etc.).
+
+		In simple terms, Observers help separate the logic of what happens when a model changes (like creating or updating data) from the model itself.
+
+	Advantages of observers :-
+
+		- Clean Code: Keeps your controllers and models clean by moving event handling to a dedicated observer class. 
+		- Reusability: Allows you to apply the same logic across different models in a consistent way.
+		- Separation of Concerns: Keeps the model logic focused on data and business rules, while the observer handles actions like logging, sending notifications, etc.
+
+	Steps to Create an Observer in Laravel
+		1. Create the Observer Class: php artisan make:observer UserObserver --model=User
+		2. Define Event Methods: In the UserObserver class, you define methods that correspond to the events you want to listen to, such as created, updated, deleted, etc.
+		3. Register the Observer: 
+			we need to register the observer to make Laravel aware of it. This is done in the boot() method of App\Providers\AppServiceProvider.
+				User::observe(UserObserver::class);
+		4. Done.
+
+	Common Eloquent Events
+
+		- creating: Before a new model is saved to the database.
+
+		- created: After a model is saved to the database.
+
+		- updating: Before an existing model is updated.
+
+		- updated: After a model is updated.
+
+		- deleting: Before a model is deleted.
+
+		- deleted: After a model is deleted.

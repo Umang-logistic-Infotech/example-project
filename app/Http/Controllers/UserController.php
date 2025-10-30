@@ -52,7 +52,7 @@ class UserController extends Controller
 
         if ($row) {
             $userEmail = $row->email;
-            Mail::to($userEmail)->send(new DeletedUser());
+            // Mail::to($userEmail)->send(new DeletedUser());
             $row->delete();
             return response()->json(['message' => 'User with email ' . $userEmail . ' deleted']);
             // return response()->json(['message' => $userEmail]);
