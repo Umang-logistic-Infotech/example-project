@@ -8,6 +8,8 @@ use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use SebastianBergmann\Diff\Diff;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DeletedUser;
 
 class UserController extends Controller
 {
@@ -25,12 +27,23 @@ class UserController extends Controller
     }
     public function getUsers1(Request $request)
     {
-        return DataTables::of(User::query())->make(true);
+        $gender = $request->get('gender');
+        $query = User::query();
+
+        if ($gender !== 'All') {
+            if ($gender == 'Male') {
+                $query->where('gender', 'male');
+            } else {
+                $query->where('gender', 'female');
+            }
+        }
+        return DataTables::of($query)->make(true);
     }
+
     public function edit($id)
     {
-        $row = User::find($id);
-        return view('edit_form', compact('row'));
+        $user = User::find($id);
+        return view('edit_form', compact('user'));
     }
 
     public function delete($id)
@@ -38,8 +51,11 @@ class UserController extends Controller
         $row = User::find($id);
 
         if ($row) {
+            $userEmail = $row->email;
+            Mail::to($userEmail)->send(new DeletedUser());
             $row->delete();
-            return response()->json(['message' => 'Row deleted successfully!']);
+            return response()->json(['message' => 'User with email ' . $userEmail . ' deleted']);
+            // return response()->json(['message' => $userEmail]);
         } else {
             return response()->json(['message' => 'Row not found!'], 404);
         }
