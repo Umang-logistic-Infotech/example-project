@@ -25,25 +25,7 @@ class UserController extends Controller
     }
     public function getUsers1(Request $request)
     {
-        // $users = User::all();
-        return DataTables::of(User::query())
-            ->setRowId('{{$id}}')
-            ->setRowClass('{{ $id % 2 == 0 ? "text-success" : "text-info-emphasis" }}')
-            ->addColumn('calculatedAge', function ($row) {
-                $dateOfBirth = Carbon::parse($row->date_of_birth);
-
-                if (!$dateOfBirth) {
-                    return null;
-                }
-
-                $today = Carbon::now();
-                $difference =  $dateOfBirth->diff($today);
-                return $difference->y;
-            })
-            ->rawColumns(['calculatedAge'])
-
-            ->make(true);
-        // return $users;   
+        return DataTables::of(User::query())->make(true);
     }
     public function edit($id)
     {

@@ -45,7 +45,17 @@
                         data: 'age'
                     },
                     {
-                        data: 'calculatedAge',
+                        data: 'age',
+                        render: function(data, type, row) {
+                            const dob = new Date(row.date_of_birth);
+                            const today = new Date();
+                            let age = today.getFullYear() - dob.getFullYear();
+                            const m = today.getMonth() - dob.getMonth();
+                            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                                age -= 1;
+                            }
+                            return age;
+                        },
                         orderable: false,
                         searchable: false
                     },
@@ -82,7 +92,14 @@
                         searchable: false
                     }
 
-                ]
+                ],
+                createdRow: function(row, data, dataIndex) {
+                    if (dataIndex % 2 === 0) {
+                        $(row).addClass('text-success');
+                    } else {
+                        $(row).addClass('text-info-emphasis');
+                    }
+                }
             });
 
             $(document).on('click', '.delete', function() {
