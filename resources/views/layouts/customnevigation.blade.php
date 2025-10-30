@@ -20,10 +20,18 @@
                         Dashboard
                     </a>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('users.index') ? 'active' : '' }}"
                         href="{{ route('users') }}">
                         All Users
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('addUser') ? 'active' : '' }}"
+                        href="{{ route('addUser') }}">
+                        Add User
                     </a>
                 </li>
             </ul>

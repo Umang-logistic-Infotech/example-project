@@ -13,10 +13,14 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Route::controller(UserController::class)->middleware(['auth', 'verified'])->group(function () {});
-Route::get('/users', [UserController::class, 'getUsers'])->name('users');
+Route::controller(UserController::class)->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/users',  'getUsers')->name('users');
+    Route::get('/createUser', 'addUser')->name('addUser');
+    Route::post('/createUser', 'createUser')->name('createUser');
 
-Route::get('/users1', [UserController::class, 'getUsers1'])->name('getUsers1');
+    Route::get('/users1', 'getUsers1')->name('getUsers1');
+});
+
 Route::get('/deleteUserMail', [MailController::class, 'deletedUserMail'])->name('deleteUserMail');
 
 // Route::post('/edit/{id}', [UserController::class, 'edit'])->name('edit.row');

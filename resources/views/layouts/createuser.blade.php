@@ -11,13 +11,7 @@
 </head>
 
 <body class="font-sans antialiased">
-
     @include('layouts.customnevigation')
-    @if (session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
     <main>
         @yield('content')
     </main>
