@@ -18,6 +18,21 @@
             {{ session('success') }}
         </div>
     @endif
+    @if (session('invalid'))
+        <div class="alert alert-danger">
+            {{ session('invalid') }}
+        </div>
+    @endif
+    @if (session('expired'))
+        <div class="alert alert-danger">
+            {{ session('expired') }}
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
     <main>
         @yield('content')
     </main>

@@ -16,7 +16,9 @@ Route::get('/dashboard', function () {
 Route::controller(UserController::class)->middleware(['auth', 'verified'])->group(function () {
     Route::get('/users',  'getUsers')->name('users');
     Route::get('/createUser', 'addUser')->name('addUser');
+    Route::get('/verifyotp', 'verifyotpview')->name('verifyotp');
     Route::post('/createUser', 'createUser')->name('createUser');
+    Route::post('/verify-otp', 'verifyOtp')->name('verify-otp');
 
     Route::get('/users1', 'getUsers1')->name('getUsers1');
 });

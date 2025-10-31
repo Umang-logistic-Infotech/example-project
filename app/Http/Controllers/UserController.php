@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use SebastianBergmann\Diff\Diff;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\DeletedUser;
+use App\Mail\SendVerificationOtpMail;
 
 class UserController extends Controller
 {
@@ -17,6 +17,12 @@ class UserController extends Controller
     public function index()
     {
         return "User Controller";
+    }
+    public function getUsers()
+    {
+        $user = Auth::User();
+        // $users = User::all();
+        return view('users', compact('user'));
     }
 
     public function createUser(Request $request)
@@ -59,14 +65,21 @@ class UserController extends Controller
         $user->profileImage = $imagePath;
         $user->save();
         session()->flash('success', 'user created successfully');
-        return redirect('/users');
+        session(['userMail' => $request->userEmail]);
+
+        // $userMail = $request->userEmail;
+        return redirect('/verifyotp');
     }
 
-    public function getUsers()
+
+
+    public function verifyotpview()
     {
         $user = Auth::User();
-        // $users = User::all();
-        return view('users', compact('user'));
+        // $userMail = $request->userMail;
+        $userMail = session('userMail');
+
+        return view('verifyotp', compact('user', 'userMail'));
     }
 
     public function addUser(Request $request)
@@ -90,6 +103,71 @@ class UserController extends Controller
         return DataTables::of($query)->make(true);
     }
 
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'otp' => 'required|numeric|digits:6',
+            // 'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = User::where('email', $request->userEmail)->first();
+
+
+        $sessionOtp = session('otp');
+        $sessionOtpExpiresAt = session('otp_expires_at');
+        if ($user) {
+            if (Carbon::now()->lt($sessionOtpExpiresAt)) {
+                if ($sessionOtp == $request->otp) {
+                    $user->email_verified_at = Carbon::now();
+                    $user->save();
+                    session()->flash('success', 'user created successfully with email verification');
+                    return redirect('/users');
+
+                    // return response()->json(['success' => 'Email verified successfully!'], 200);
+                } else {
+                    session()->flash('invalid', 'Enter valid Otp!');
+                    return redirect('/users');
+
+                    // return response()->json(['invalid' => 'Enter valid Otp!'], 400);
+                }
+            } else {
+                session()->flash('expired', 'Otp Expired Please generate the new otp');
+                return redirect('/users');
+                // return response()->json(['expired' => 'Otp Expired Please  new the otp'], 400);
+            }
+        } else {
+            session()->flash('error', 'User not found');
+            return redirect('/users');
+            // return response()->json(['error' => 'User not found'], 400);
+        }
+        session()->flash('error', 'Somthing Went wrong');
+        // return response()->json(['error' => 'Somthing Went wrong'], 400);
+        // $user = Auth::User();
+
+        return redirect('/users');
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user) {
+            $otp = rand(100000, 999999);
+            session(['otp' => $otp]);
+            session(['otp_expires_at' => now()->addMinutes(5)]);
+            Mail::to($user->email)->send(new SendVerificationOtpMail($otp));
+
+            return response()->json(['message' => 'OTP resent successfully!'], 200);
+        }
+
+        return response()->json(['error' => 'User not found!'], 404);
+    }
+
     public function edit($id)
     {
         $user = User::find($id);
@@ -102,10 +180,8 @@ class UserController extends Controller
 
         if ($row) {
             $userEmail = $row->email;
-            // Mail::to($userEmail)->send(new DeletedUser());
             $row->delete();
             return response()->json(['message' => 'User with email ' . $userEmail . ' deleted']);
-            // return response()->json(['message' => $userEmail]);
         } else {
             return response()->json(['message' => 'Row not found!'], 404);
         }
